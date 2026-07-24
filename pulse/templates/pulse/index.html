@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Pulse</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; color: #1b1f24; }
+    .card { max-width: 860px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    h1 { margin-top: 0; }
+    .row { display: flex; gap: 8px; }
+    input { flex: 1; padding: 10px; border: 1px solid #ccd2de; border-radius: 8px; font-size: 14px; }
+    button { padding: 10px 16px; border: 0; background: #2563eb; color: white; border-radius: 8px; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .error { color: #b42318; margin-top: 14px; }
+    .result { margin-top: 16px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    th { width: 220px; background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Page Pulse</h1>
+    <p>Audit any URL for quick SEO/content health signals.</p>
+    <div class="row">
+      <input id="urlInput" type="url" placeholder="https://example.com">
+      <button id="auditBtn">Audit</button>
+    </div>
+    <p id="error" class="error"></p>
+    <div id="result" class="result" hidden></div>
+  </div>
+
+  <script>
+    const input = document.getElementById("urlInput");
+    const button = document.getElementById("auditBtn");
+    const resultContainer = document.getElementById("result");
+    const errorContainer = document.getElementById("error");
+
+    function renderResult(data) {
+      const rows = [
+        ["URL", data.url],
+        ["HTTP status", data.http_status],
+        ["Response time (ms)", data.response_time_ms],
+        ["Content type", data.content_type],
+        ["Page title", data.page_title || "(none)"],
+        ["Meta description", data.meta_description || "(none)"],
+        ["H1 count", data.h1_count],
+        ["Images missing alt", data.images_missing_alt],
+        ["Approximate word count", data.approx_word_count],
+      ];
+
+      resultContainer.innerHTML = `
+        <table>
+          <tbody>
+            ${rows.map((row) => `<tr><th>${row[0]}</th><td>${row[1]}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      `;
+      resultContainer.hidden = false;
+    }
+
+    async function runAudit() {
+      const url = input.value.trim();
+      errorContainer.textContent = "";
+      resultContainer.hidden = true;
+
+      if (!url) {
+        errorContainer.textContent = "Please enter a URL.";
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/audit?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        if (!response.ok) {
+          errorContainer.textContent = data.error || "Audit failed.";
+          return;
+        }
+        renderResult(data);
+      } catch (error) {
+        errorContainer.textContent = "Network error while calling the audit API.";
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    button.addEventListener("click", runAudit);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        runAudit();
+      }
+    });
+  </script>
+</body>
+</html>
