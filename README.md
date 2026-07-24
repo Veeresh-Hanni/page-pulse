@@ -104,12 +104,3 @@ Included parser tests:
 
 3. **Return explicit, typed HTTP error categories (400/415/502/504)**
    - Reasoning: separates client issues from upstream/network conditions so callers can handle retries and UX messaging correctly.
-
-## Task Deliverable Notes
-
-- **Public GitHub repo:** push this folder to a new GitHub repository.
-- **Live deployed link:** deploy on a free tier (for example, Render/Railway/Fly.io).
-- **Loom demo:** record a short walkthrough showing:
-  - successful audit run
-  - one failure path
-  - one code area to improve with an extra day
